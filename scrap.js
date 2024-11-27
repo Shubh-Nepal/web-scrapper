@@ -36,7 +36,7 @@ const fs = require('fs');
                     headers: {
                         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36'
                     },
-                    gzip: true
+                    gzip: true,
                 };
 
                 
@@ -44,49 +44,21 @@ const fs = require('fs');
                 const $car = cheerio.load(carPageResponse);
 
                 
-                carNames = [];
-                $('div[class="specification-section"] > h4').each((i, el)=> {
-                    const Cname = $(el).text().trim();
-                    if(Cname){
-                        carNames.push(Cname);
-                    }
-                });
-                carLocation = [];
-                $('div[class="location"]').each((i, el)=>{
-                    const Loc = $(el).text().trim();
-                    if(Loc){
-                        carLocation.push(Loc);
-                    }
-                })
-                carPrice = [];
-                $('div[class="value"]').each((i, el)=>{
-                    const p = $(el).text().trim();
-                    if(p){
-                        carPrice.push(p);
-                    }
-                })
-                carContact = [];
-                $car('div[class="phone-wrapper"] span').each((i, el)=>{
-                    const con = $(el).text().trim();
-                    if(con){
-                        carContact.push(con);
-                    }
-                })
-                
-                for(let i = 0; i <= carNames.length - 1; i++){
+                const carName = $('div[class="specification-section"] > h4').first().text().trim();
+                const location = $('div[class="location"]').first().text().trim();
+                const price = $car('div[class="value"] span').first().text().trim();
+                const phoneNumber = $('div[class="phone-wrapper"] span').first().text().trim();
 
+        
                 const carDetails = {
-                    Name: carNames[i],
-                    location: carLocation[i],
-                    price: carPrice[i],
-                    phoneNumber: carContact[i],
-                    listingURL: carLink,
-                };
-                allCars.push(carDetails);
-            }
-                
+                    carName ,
+                    location,
+                    price,
+                    phoneNumber,
+                    listingURL ,
+        };
 
-                
+        allCars.push(carDetails);
                 
 
             } catch (error) {
