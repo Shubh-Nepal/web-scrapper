@@ -4,7 +4,7 @@ const fs = require('fs');
 
 (async () => {
     try {
-        const main = {
+        const mainPageOptions = {
             uri: 'https://www.nepalicars.com/en/vehicle_listings/',
             headers: {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
@@ -12,60 +12,57 @@ const fs = require('fs');
             gzip: true,
         };
 
-        //  main page //
-        const response = await request(main);
-        const $ = cheerio.load(response);
+       
+        const mainPageResponse = await request(mainPageOptions);
+        const $ = cheerio.load(mainPageResponse);
 
-        let carListing = [];
-    
+        const allCars = [];
 
-        $('div[class="ads-lists"] > a').each((i, el) => {
+        
+        $('div.ads-lists > a').each((_, el) => {
             const carLink = $(el).attr('href');
+            const carName = $(el).find('h4').text().trim();
+            const carLocation = $(el).find('div.location').text().trim();
+            const carPrice = $(el).find('div.value span').first().text().trim() || 'NEGOTIABLE';
+
             if (carLink) {
-                carListing.push(`https://www.nepalicars.com${carLink}`);
+                allCars.push({
+                    Name: carName,
+                    Location: carLocation,
+                    Price: carPrice,
+                    Contact: null, 
+                    ListingURL: `https://www.nepalicars.com${carLink}`,
+                });
             }
         });
 
-        let allCars = [];
-
-        for (const carLink of carListing) {
+        
+        for (const car of allCars) {
             try {
-                const carPage = {
-                    uri: carLink,
+                const carPageOptions = {
+                    uri: car.ListingURL,
                     headers: {
                         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
                     },
                     gzip: true,
                 };
 
-                const carPageResponse = await request(carPage);
-                const $car = cheerio.load(carPageResponse);
+                const carPageResponse = await request(carPageOptions);
+                const $page = cheerio.load(carPageResponse);
 
-
-                const carName = $('div.specification-section h4').first().text().trim();
-                const location = $('div.location').first().text().trim();
-                const price = $('div.value span').first().text().trim();
-                const phoneNumber = $car('div.phone-wrapper span').first().text().trim();
                 
-                const carDetails = {
-                    Name : carName,
-                    location : location,
-                    price : price,
-                    phoneNumber: phoneNumber,
-                    listingURL: carLink,
-                };
-
-                allCars.push(carDetails);
+                car.Contact = $page('div.phone-wrapper span').first().text().trim() || 'Not available';
             } catch (error) {
-                console.error(`Error fetching details for car: ${carLink}`, error.message);
+                console.error(`Error fetching details for ${car.ListingURL}:`, error.message);
+                car.Contact = 'Error fetching contact';
             }
         }
-       
-       
-        fs.writeFileSync('allCars.json', JSON.stringify(allCars, null, 2), 'utf8');
-        console.log('Car listings saved to car_listings.json');
 
+        
+        fs.writeFileSync('CARS.json', JSON.stringify(allCars, null, 2), 'utf8');
+        console.log('Car listings saved to CARS.json');
     } catch (error) {
-        console.error('Your code sucks:', error.message);
+        console.error('An error occurred:', error.message);
     }
 })();
+
