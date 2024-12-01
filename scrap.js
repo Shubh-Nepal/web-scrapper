@@ -3,22 +3,30 @@ const cheerio = require('cheerio');
 const fs = require('fs');
 
 (async () => {
+
     try {
+
+        baseURL = '';
+        pages = 1;
+
         const mainPageOptions = {
             uri: 'https://www.nepalicars.com/en/vehicle_listings/',
             headers: {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
-            },
+            },  
             gzip: true,
         };
 
-       
+        
         const mainPageResponse = await request(mainPageOptions);
         const $ = cheerio.load(mainPageResponse);
 
         const allCars = [];
 
         
+
+
+        //MAIN LOGIC
         $('div.ads-lists > a').each((_, el) => {
             const carLink = $(el).attr('href');
             const carName = $(el).find('h4').text().trim();
